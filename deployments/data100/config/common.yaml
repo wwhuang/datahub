@@ -1,3 +1,6 @@
+nfsMounter:
+  enabled: false
+
 nfsPVC:
   enabled: true
   nfs:
@@ -12,9 +15,14 @@ jupyterhub:
         # stat c100
         2019-fall-24961: {}
       admin:
+        mem_limit: 4096M
+        mem_guarantee: 20484M
         extraVolumeMounts:
           - name: home
             mountPath: /srv/homes
+          - name: home
+            mountPath: /home/jovyan/shared-readwrite
+            subPath: _shared
   auth:
     type: dummy
     admin:
@@ -56,28 +64,63 @@ jupyterhub:
         - manana.hakobyan
         - andysheu
         - allenshen5
+        
+        # tutors
+        - wesley1016
+        - ischmidt20
+        - zacharywu
+        - zhaoziyun
+        - oliversong
+        - leong.eric17
+        - yangluanne
+        - lexyyxl
+        - kevin.hsu
+        - xuzh
+        - jamesrichardsusilo
+        - violetyao
+        - janelawrence
+        - y_liang
+        - jessicawang7201
+        - diego.uribe
+        - oliveqy
+        - rohan.hajela
+        - sayanc
+        - am123
+        - pranshu
+        - parthbaokar
+
         # instructors
         - adhikari
         - jegonzal
-        
+
   singleuser:
+    nodeSelector:
+      hub.jupyter.org/pool-name: beta-pool
     initContainers:
       - name: volume-mount-hack
         image: busybox
-        command: ["sh", "-c", "id && chown 1000:1000 /home/jovyan && ls -lhd /home/jovyan"]
+        command: ["sh", "-c", "id && chown 1000:1000 /home/jovyan && chown 1000:1000 /home/jovyan/shared"]
         securityContext:
           runAsUser: 0
         volumeMounts:
         - name: home
           mountPath: /home/jovyan
           subPath: "{username}"
+        - name: home
+          mountPath: /home/jovyan/shared
+          subPath: _shared
     storage:
       type: static
       static:
         pvcName: home-nfs
         subPath: "{username}"
+      extraVolumeMounts:
+        - name: home
+          mountPath: /home/jovyan/shared
+          subPath: _shared
+          readOnly: true
     memory:
-      guarantee: 768M
+      guarantee: 512M
       limit: 2G
     image:
       name: gcr.io/ucb-datahub-2018/data100-user-image
